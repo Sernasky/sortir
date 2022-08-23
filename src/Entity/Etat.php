@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\EtatRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -17,6 +19,14 @@ class Etat
     #[ORM\Column(type: Types::TEXT)]
     private ?string $libelle = null;
 
+    #[ORM\OneToMany(mappedBy: 'etat', targetEntity: sortie::class)]
+    private Collection $etat;
+
+    public function __construct()
+    {
+        $this->etat = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -30,6 +40,36 @@ class Etat
     public function setLibelle(string $libelle): self
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, sortie>
+     */
+    public function getEtat(): Collection
+    {
+        return $this->etat;
+    }
+
+    public function addEtat(sortie $etat): self
+    {
+        if (!$this->etat->contains($etat)) {
+            $this->etat->add($etat);
+            $etat->setEtat($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtat(sortie $etat): self
+    {
+        if ($this->etat->removeElement($etat)) {
+            // set the owning side to null (unless already changed)
+            if ($etat->getEtat() === $this) {
+                $etat->setEtat(null);
+            }
+        }
 
         return $this;
     }

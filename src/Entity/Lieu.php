@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\LieuRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: LieuRepository::class)]
@@ -24,6 +26,18 @@ class Lieu
 
     #[ORM\Column]
     private ?float $longitude = null;
+
+    #[ORM\OneToMany(mappedBy: 'lieu', targetEntity: sortie::class)]
+    private Collection $lieu;
+
+    #[ORM\ManyToOne(inversedBy: 'ville')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Ville $ville = null;
+
+    public function __construct()
+    {
+        $this->lieu = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -74,6 +88,48 @@ class Lieu
     public function setLongitude(float $longitude): self
     {
         $this->longitude = $longitude;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, sortie>
+     */
+    public function getLieu(): Collection
+    {
+        return $this->lieu;
+    }
+
+    public function addLieu(sortie $lieu): self
+    {
+        if (!$this->lieu->contains($lieu)) {
+            $this->lieu->add($lieu);
+            $lieu->setLieu($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLieu(sortie $lieu): self
+    {
+        if ($this->lieu->removeElement($lieu)) {
+            // set the owning side to null (unless already changed)
+            if ($lieu->getLieu() === $this) {
+                $lieu->setLieu(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getVille(): ?Ville
+    {
+        return $this->ville;
+    }
+
+    public function setVille(?Ville $ville): self
+    {
+        $this->ville = $ville;
 
         return $this;
     }
